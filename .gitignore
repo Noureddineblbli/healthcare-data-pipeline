@@ -1,0 +1,78 @@
+# General Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.python-version
+venv/
+env/
+.venv/
+.env
+
+# Docker
+docker/volumes/
+docker/logs/
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+terraform.tfstate
+terraform.tfstate.backup
+
+# IDE/Editor Specific
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# OS Specific
+.DS_Store
+Thumbs.db
+
+# Credentials & Data
+*.zip
+*.tar.gz
+*.csv
+*.json
+*.parquet
+*.avro
+*secrets*.yml
+*credentials*.yaml
+*.env.production
+*.env.development
+*.env.test
+
+# Tool Specific Temporary Files
+# NiFi
+nifi/conf/
+nifi/logs/
+nifi/state/
+nifi/flow.xml.gz
+
+# Airflow
+airflow/logs/
+airflow/webserver_config.py
+airflow/airflow.cfg
+airflow/temp_dir/
+
+# Spark
+spark-events/
+spark/logs/
+spark/work/
+
+# dbt
+dbt/target/
+dbt/logs/
+
+# Great Expectations
+great_expectations/uncommitted/
+great_expectations/checkpoints/
+great_expectations/notebooks/
+great_expectations/data/
+```eof
+
+Once you've made these changes and saved the file, let me know.
