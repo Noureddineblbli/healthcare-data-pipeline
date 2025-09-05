@@ -1,0 +1,31 @@
+# -----------------------------------------------------------------------------
+# EXAMPLE TERRAFORM VARIABLES
+#
+# INSTRUCTIONS:
+# 1. Copy this file to a new file named 'terraform.tfvars'.
+# 2. Replace the placeholder values with your actual secrets.
+# 3. The 'terraform.tfvars' file should NOT be committed to version control.
+#    (Ensure it is added to your .gitignore file).
+#
+# This file provides Terraform with the necessary inputs to configure your
+# Snowflake resources.
+# -----------------------------------------------------------------------------
+
+# --- Snowflake Connection & Authentication ---
+
+snowflake_account = "YOXMCQX-XXXXXXX"
+snowflake_user    = "NOURDDINE"
+snowflake_role    = "ACCOUNTADMIN"
+
+# ❗ IMPORTANT: Replace this placeholder with your actual Snowflake password in your terraform.tfvars file.
+snowflake_password = "YOUR_SNOWFLAKE_PASSWORD_HERE"
+
+
+# --- Infrastructure Configuration ---
+# These values can be kept as-is or modified to suit your needs.
+
+warehouse_name = "HEALTHCARE_PIPELIPELINE_WH"
+warehouse_size = "X-SMALL"
+
+database_name = "HEALTHCARE_DATA_DB"
+schema_names  = ["RAW", "BRONZE", "SILVER", "GOLD"]

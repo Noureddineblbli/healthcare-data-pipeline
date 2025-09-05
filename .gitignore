@@ -1,78 +1,28 @@
-# General Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-.python-version
-venv/
-env/
-.venv/
-.env
-
-# Docker
-docker/volumes/
-docker/logs/
-
-# Terraform
-.terraform/
-.terraform.lock.hcl
-*.tfvars
-terraform.tfstate
-terraform.tfstate.backup
-
-# IDE/Editor Specific
+# IDE & OS files
 .vscode/
 .idea/
-*.sublime-project
-*.sublime-workspace
-.project
-.classpath
-.settings/
-
-# OS Specific
+*.pyc
+__pycache__/
 .DS_Store
-Thumbs.db
 
-# Credentials & Data
-*.zip
-*.tar.gz
-*.csv
-*.json
-*.parquet
-*.avro
-*secrets*.yml
-*credentials*.yaml
-*.env.production
-*.env.development
-*.env.test
+# Docker & Environment Configuration
+# ---
+# Ignore all local environment files
+.env
+*.env
 
-# Tool Specific Temporary Files
-# NiFi
-nifi/conf/
-nifi/logs/
-nifi/state/
-nifi/flow.xml.gz
+# Ignore directories created by Docker Compose volumes
+docker/
+nifi/
+airflow/
 
-# Airflow
-airflow/logs/
-airflow/webserver_config.py
-airflow/airflow.cfg
-airflow/temp_dir/
 
-# Spark
-spark-events/
-spark/logs/
-spark/work/
+# Terraform State & Secrets
+# ---
+# Ignore the local tfvars file with secrets
+terraform/terraform.tfvars
 
-# dbt
-dbt/target/
-dbt/logs/
-
-# Great Expectations
-great_expectations/uncommitted/
-great_expectations/checkpoints/
-great_expectations/notebooks/
-great_expectations/data/
-```eof
-
-Once you've made these changes and saved the file, let me know.
+# Ignore terraform state files and downloaded providers
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
