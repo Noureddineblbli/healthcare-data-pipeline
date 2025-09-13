@@ -26,3 +26,8 @@ terraform/terraform.tfvars
 terraform/.terraform/
 terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
+
+# dbt artifacts (should not be version controlled)
+dbt/healthcare_pipeline/dbt_packages/
+dbt/healthcare_pipeline/logs/
+dbt/healthcare_pipeline/target/

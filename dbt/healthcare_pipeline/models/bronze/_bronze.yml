@@ -1,0 +1,10 @@
+version: 2
+sources:
+  - name: raw
+    database: HEALTHCARE_DATA_DB
+    schema: RAW
+    tables:
+      - name: patients
+models:
+  - name: bronze_fhir_patients
+    description: "A cleaned and standardized table of FHIR patient data."

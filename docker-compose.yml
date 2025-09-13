@@ -14,13 +14,15 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 5
 
   airflow-init:
-    image: apache/airflow:2.9.2
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
     container_name: airflow-init
     depends_on:
       postgres:
@@ -36,7 +38,9 @@ services:
       "
 
   airflow-webserver:
-    image: apache/airflow:2.9.2
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
     container_name: airflow-webserver
     restart: unless-stopped
     depends_on:
@@ -47,12 +51,31 @@ services:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - AIRFLOW__CORE__EXECUTOR=${AIRFLOW__CORE__EXECUTOR}
       - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY}
+      # --- ADD ALL OF THESE NEW ENVIRONMENT VARIABLES ---
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+    volumes:
+      - ./spark/jobs:/opt/spark/jobs
+      - ./spark/data:/opt/bitnami/spark/data
+      - ./spark/jars:/opt/bitnami/spark/extra-jars
     ports:
       - "${AIRFLOW_UI_PORT}:8080"
-    command: airflow webserver
+    command: >
+      bash -c "airflow webserver"
+    healthcheck:
+      test: [ "CMD-SHELL", "airflow db check || exit 1" ]
+      interval: 30s
+      timeout: 30s
+      retries: 20
 
   airflow-scheduler:
-    image: apache/airflow:2.9.2
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
     container_name: airflow-scheduler
     restart: unless-stopped
     depends_on:
@@ -62,9 +85,21 @@ services:
       - AIRFLOW_UID=${AIRFLOW_UID:-50000}
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - AIRFLOW__CORE__EXECUTOR=${AIRFLOW__CORE__EXECUTOR}
+      - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY}
+      # --- ADD ALL OF THESE NEW ENVIRONMENT VARIABLES ---
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
     volumes:
-      - ./dags:/opt/airflow/dags
-    command: airflow scheduler
+      - ./airflow/dags:/opt/airflow/dags
+      - ./spark/jobs:/opt/spark/jobs
+      - ./spark/data:/opt/bitnami/spark/data
+      - ./spark/jars:/opt/bitnami/spark/extra-jars
+    command: >
+      bash -c "airflow scheduler"
 
   nifi:
     image: apache/nifi:1.25.0
@@ -80,21 +115,57 @@ services:
       - nifi-flowfile:/opt/nifi/nifi-current/flowfile_repository
       - nifi-content:/opt/nifi/nifi-current/content_repository
       - nifi-provenance:/opt/nifi/nifi-current/provenance_repository
+      - ./sample_data:/opt/nifi/nifi-current/data/input
+      - ./spark/data/input/fhir_json:/opt/nifi/nifi-current/data/output
 
   spark-master:
-    image: bitnami/spark:3.5
+    build:
+      # <--- MODIFIED
+      context: .
+      dockerfile: docker/Spark.Dockerfile
     container_name: spark-master
     restart: unless-stopped
+    user: "50000"
+    # The 'user: root' line is no longer needed here, it's in the Dockerfile.
     environment:
       - SPARK_MODE=${SPARK_MODE}
       - SPARK_RPC_AUTHENTICATION_ENABLED=${SPARK_RPC_AUTHENTICATION_ENABLED}
       - SPARK_RPC_ENCRYPTION_ENABLED=${SPARK_RPC_ENCRYPTION_ENABLED}
+      - SPARK_CLASSPATH=/opt/bitnami/spark/extra-jars/*
+
+      # --- ADD ALL OF THESE NEW ENVIRONMENT VARIABLES ---
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
     ports:
-      - "${SPARK_MASTER_UI_PORT}:8080" # Spark Master Web UI
-      - "7077:7077" # Spark Master Port
+      - "${SPARK_MASTER_UI_PORT}:8080"
+      - "7077:7077"
     volumes:
-      - ./apps:/opt/bitnami/spark/apps
-      - ./data:/opt/bitnami/spark/data
+      - ./spark/jobs:/opt/bitnami/spark/jobs
+      - ./spark/data:/opt/bitnami/spark/data
+      - ./spark/jars:/opt/bitnami/spark/extra-jars
+
+  spark-worker:
+    build:
+      # <--- MODIFIED
+      context: .
+      dockerfile: docker/Spark.Dockerfile
+    container_name: spark-worker
+    restart: unless-stopped
+    depends_on:
+      - spark-master
+    user: "50000"
+    # The 'user: root' line is no longer needed here, it's in the Dockerfile.
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    volumes:
+      - ./spark/jobs:/opt/bitnami/spark/jobs
+      - ./spark/data:/opt/bitnami/spark/data
+      - ./spark/jars:/opt/bitnami/spark/extra-jars
 
 volumes:
   postgres-data:
