@@ -16,6 +16,8 @@ docker/
 nifi/
 airflow/
 
+.venv/
+
 
 # Terraform State & Secrets
 # ---

@@ -36,7 +36,8 @@ services:
         airflow db upgrade;
         airflow users create --username ${AIRFLOW_USER_NAME} --firstname admin --lastname admin --role Admin --email ${AIRFLOW_USER_EMAIL} --password ${AIRFLOW_USER_PASSWORD};
       "
-
+    volumes:
+      - ./great_expectations:/opt/airflow/great_expectations
   airflow-webserver:
     build:
       context: .
@@ -58,10 +59,14 @@ services:
       - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
       - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
       - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - _PIP_ADDITIONAL_REQUIREMENTS=apache-airflow-providers-apache-spark great-expectations[snowflake] python-dotenv
+
     volumes:
       - ./spark/jobs:/opt/spark/jobs
       - ./spark/data:/opt/bitnami/spark/data
       - ./spark/jars:/opt/bitnami/spark/extra-jars
+      - ./great_expectations:/opt/airflow/great_expectations
+      - ./dbt:/opt/airflow/dbt
     ports:
       - "${AIRFLOW_UI_PORT}:8080"
     command: >
@@ -93,11 +98,16 @@ services:
       - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
       - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
       - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - _PIP_ADDITIONAL_REQUIREMENTS=apache-airflow-providers-apache-spark great-expectations[snowflake] python-dotenv
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./spark/jobs:/opt/spark/jobs
       - ./spark/data:/opt/bitnami/spark/data
       - ./spark/jars:/opt/bitnami/spark/extra-jars
+      - ./great_expectations:/opt/airflow/great_expectations
+      - ./dbt:/opt/airflow/dbt
+    env_file:
+      - ./.env
     command: >
       bash -c "airflow scheduler"
 

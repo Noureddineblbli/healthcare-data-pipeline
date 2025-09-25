@@ -1,0 +1,13 @@
+healthcare_pipeline:
+  outputs:
+    dev:
+      account: YOXMCQX-WZ49440
+      database: HEALTHCARE_DATA_DB
+      password: unr8EtGcbnHN67F
+      role: TRANSFORM_ROLE
+      schema: GOLD
+      threads: 4
+      type: snowflake
+      user: NOURDDINE
+      warehouse: HEALTHCARE_PIPELIPELINE_WH
+  target: dev
